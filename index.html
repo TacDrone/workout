@@ -56,7 +56,7 @@
         <p class="text-lg md:text-xl text-gray-300 mb-6 max-w-lg">
             ระบบตรวจจับโครงสร้างร่างกายอัจฉริยะ<br>
             สะสมเป้าหมาย <span class="text-yellow-400 font-bold">1,000 คะแนน</span><br>
-            <span class="text-blue-400">ขยับร่างกาย 30 วินาที</span> สลับ <span class="text-green-400">พัก 30 วินาที</span>
+            <span class="text-blue-400">ทำท่าที่กำหนด 30 วินาที</span> สลับ <span class="text-green-400">พัก 30 วินาที</span>
         </p>
         
         <div class="bg-gray-800/80 p-5 rounded-2xl mb-8 border border-gray-700 text-left w-full max-w-md shadow-xl backdrop-blur-sm">
@@ -65,10 +65,10 @@
                 คำแนะนำ:
             </h3>
             <ul class="list-disc list-inside text-sm text-gray-300 space-y-2">
-                <li>ต้องอนุญาตให้เบราว์เซอร์ใช้งาน <b>กล้อง (Webcam)</b></li>
-                <li>ถอยห่างจากกล้องให้ AI มองเห็นร่างกายส่วนบนหรือเต็มตัว</li>
-                <li>ระบบจะวาดโครงสร้างร่างกาย (Skeleton) ทับบนตัวคุณ</li>
-                <li>จะมี <b>เสียงเพลงเปิดคลอ</b> ตลอดการทำภารกิจ</li>
+                <li>ระบบจะสุ่มท่าให้ (<b>สควอท</b> หรือ <b>ชูแขน</b>) ทำ 1 ครั้งรับ <b>15 คะแนน</b></li>
+                <li><b>มินิเกม:</b> จะมีแอปเปิ้ลและระเบิดตกลงมาแบบสุ่ม</li>
+                <li>ใช้ <b>มือ (ปลายนิ้ว/ข้อมือ)</b> แตะแอปเปิ้ล 🍎 เพื่อรับ +5 แต้ม</li>
+                <li>ระวัง! หากแตะโดนระเบิด 💣 จะถูกหัก -15 แต้ม</li>
             </ul>
         </div>
 
@@ -78,11 +78,11 @@
         <p id="cameraError" class="text-red-500 mt-4 hidden">ไม่สามารถเปิดกล้องได้ หรือระบบ AI กำลังโหลด...</p>
     </div>
 
-    <!-- หน้าจอโหลด AI (ระหว่างเปิดกล้องและโหลดโมเดล) -->
+    <!-- หน้าจอโหลด AI -->
     <div id="loadingScreen" class="hidden absolute inset-0 z-40 bg-gray-900 flex flex-col items-center justify-center">
         <div class="loader mb-4"></div>
         <h2 class="text-xl font-semibold text-yellow-400 animate-pulse">กำลังเตรียมระบบ AI ตรวจจับข้อต่อ...</h2>
-        <p class="text-gray-400 mt-2 text-sm">กรุณายืนในตำแหน่งที่กล้องมองเห็นร่างกาย</p>
+        <p class="text-gray-400 mt-2 text-sm">กรุณายืนในตำแหน่งที่กล้องมองเห็นร่างกายเต็มตัว</p>
     </div>
 
     <!-- หน้าจอหลัก (ขณะออกกำลังกาย) -->
@@ -90,9 +90,7 @@
         
         <!-- ส่วนแสดงวิดีโอและ Canvas ซ้อนทับกัน -->
         <div class="absolute inset-0 bg-black flex items-center justify-center overflow-hidden">
-            <!-- วิดีโอต้นฉบับ -->
             <video id="videoElement" class="mirror absolute min-w-full min-h-full object-cover opacity-50" autoplay playsinline muted></video>
-            <!-- Canvas สำหรับวาดโครงกระดูก -->
             <canvas id="outputCanvas" class="mirror absolute min-w-full min-h-full object-cover"></canvas>
         </div>
         
@@ -105,7 +103,6 @@
                     <span id="scoreDisplay" class="text-4xl md:text-5xl font-bold text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-transform duration-200">0</span>
                     <span class="text-gray-400 text-sm md:text-base pb-1">/ 1000</span>
                 </div>
-                <!-- Progress bar -->
                 <div class="w-full bg-gray-800 h-3 mt-3 rounded-full overflow-hidden shadow-inner">
                     <div id="scoreProgress" class="bg-gradient-to-r from-yellow-400 to-orange-500 h-full w-0 transition-all duration-300 relative">
                         <div class="absolute top-0 left-0 w-full h-full bg-white/20 animate-pulse"></div>
@@ -119,7 +116,6 @@
                 <div class="text-2xl md:text-3xl font-bold text-white"><span id="roundDisplay">1</span><span class="text-lg text-gray-400">/20</span></div>
                 <div id="totalTimeDisplay" class="text-gray-400 text-base md:text-lg mt-1 font-mono">00:00</div>
                 
-                <!-- ปุ่มปิด/เปิดเสียง (ให้กดได้) -->
                 <button id="muteBtn" class="mt-2 pointer-events-auto bg-gray-800 hover:bg-gray-700 p-2 rounded-full text-white transition">
                     <svg id="icon-sound-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M17.657 6.343a8 8 0 010 11.314M10 19l-7-7H1V8h2l7-7v18z"></path></svg>
                     <svg id="icon-sound-off" class="w-5 h-5 hidden text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m7.414-8.414l5 5m0-5l-5 5"></path></svg>
@@ -132,9 +128,15 @@
 
         <!-- สถานะและเวลากลางหน้าจอ -->
         <div class="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
-            <div id="phaseText" class="text-5xl md:text-7xl font-bold uppercase tracking-widest text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] mb-4 bg-black/40 px-8 py-2 rounded-2xl backdrop-blur-sm">
+            <div id="phaseText" class="text-5xl md:text-7xl font-bold uppercase tracking-widest text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] mb-4 bg-black/40 px-8 py-2 rounded-2xl backdrop-blur-sm text-center">
                 โหลด AI...
             </div>
+            
+            <!-- จำนวนครั้งที่ทำได้ (แสดงตอนออกกำลังกาย) -->
+            <div id="repDisplay" class="hidden text-3xl font-bold text-green-400 bg-black/60 px-6 py-2 rounded-full mb-4 shadow-lg border border-green-500/50">
+                ทำได้: 0 ครั้ง
+            </div>
+
             <div id="timerDisplay" class="text-8xl md:text-[10rem] font-bold text-white drop-shadow-[0_8px_8px_rgba(0,0,0,0.9)] font-mono">
                 --
             </div>
@@ -147,7 +149,7 @@
         </div>
     </div>
 
-    <!-- หน้าจอความสำเร็จ (ป้ายเชิดชูเกียรติ) -->
+    <!-- หน้าจอความสำเร็จ -->
     <div id="endScreen" class="hidden absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
         <div class="bg-gradient-to-b from-gray-800 to-gray-900 border-4 border-yellow-500/80 rounded-3xl p-8 md:p-12 max-w-xl w-full text-center shadow-[0_0_80px_rgba(250,204,21,0.3)] relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300"></div>
@@ -164,7 +166,7 @@
                 
                 <p class="text-gray-300 mb-8 text-lg">
                     ร่างกายของคุณได้เคลื่อนไหวอย่างยอดเยี่ยม<br>
-                    ผ่านการประเมินจาก AI แบบสมบูรณ์แบบ
+                    ผ่านการประเมินท่าทางจาก AI แบบสมบูรณ์แบบ
                 </p>
 
                 <div class="bg-black/60 rounded-2xl p-6 mb-8 border border-gray-700 flex justify-around">
@@ -187,25 +189,47 @@
     </div>
 
     <script>
+        // --- ฟังก์ชันคณิตศาสตร์คำนวณองศาระหว่างจุด 3 จุด (ใช้เช็คท่าทาง) ---
+        function calculateAngle(a, b, c) {
+            const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+            let angle = Math.abs(radians * 180.0 / Math.PI);
+            if (angle > 180.0) angle = 360 - angle;
+            return angle;
+        }
+
         // --- การตั้งค่าเกม ---
         const TARGET_SCORE = 1000;
         const MAX_ROUNDS = 20;
         const PHASE_DURATION = 30; // 30 วิ
-        const MOVEMENT_THRESHOLD = 0.08; // ความไวของการขยับ (น้อย=ไวมาก, มาก=ต้องขยับแรง)
+        const POINTS_PER_REP = 15; // 1 ครั้ง = 15 แต้ม
+        
+        // ข้อมูลท่าออกกำลังกาย
+        const EXERCISES = [
+            { id: 'squat', name: 'สควอท (Squats)', desc: 'ย่อเข่าลงให้ลึก และยืดตัวขึ้นตรง' },
+            { id: 'arm_raise', name: 'ชูแขนขึ้นลง (Arm Raises)', desc: 'ชูมือทั้งสองข้างขึ้นเหนือศีรษะ' },
+            { id: 'jumping_jack', name: 'กระโดดตบ (Jumping Jacks)', desc: 'กระโดดกางแขนและขาออก' },
+            { id: 'high_knee', name: 'ยกเข่าสูง (High Knees)', desc: 'ยกเข่าสลับซ้ายขวาให้สูงระดับเอว' },
+            { id: 'lateral_raise', name: 'กางแขน (Lateral Raises)', desc: 'กางแขนทั้งสองข้างออกด้านข้างระดับไหล่' }
+        ];
 
         // --- สถานะของระบบ ---
         let score = 0;
         let currentRound = 1;
-        let timeLeft = 3; // นับถอยหลังเข้าเกม
+        let timeLeft = 3;
         let totalSeconds = 0;
         let phase = 'INIT'; // INIT, WORK, REST, END
-        let isMoving = false;
         let isGameStarted = false;
-        
-        // สำหรับคำนวณการเคลื่อนไหว
-        let previousLandmarks = null;
-
         let gameInterval = null;
+        
+        // ตัวแปรสำหรับท่าทาง
+        let currentExercise = null;
+        let repState = false; // สถานะกำลังทำท่า (เช่น กำลังย่อ หรือ กำลังยกแขน)
+        let repsInRound = 0;
+        let lastRepTime = 0;
+
+        // ตัวแปรสำหรับมินิเกม
+        let fallingObjects = [];
+        let hitTexts = [];
 
         // --- UI Elements ---
         const ui = {
@@ -223,6 +247,7 @@
             motionFeedback: document.getElementById('motionFeedback'),
             motionDot: document.getElementById('motionDot'),
             motionText: document.getElementById('motionFeedbackText'),
+            repDisplay: document.getElementById('repDisplay')
         };
 
         // --- ระบบเสียง ---
@@ -247,7 +272,7 @@
         }});
         
         pose.setOptions({
-            modelComplexity: 0, // 0 = เร็วสุด (เหมาะกับ Web), 1 = แม่นยำกลาง, 2 = แม่นยำสูงแต่ช้า
+            modelComplexity: 0, 
             smoothLandmarks: true,
             enableSegmentation: false,
             minDetectionConfidence: 0.5,
@@ -263,8 +288,7 @@
             ui.loading.style.display = 'flex';
             ui.loading.classList.remove('hidden');
 
-            // เริ่มเล่นเพลง
-            bgMusic.play().catch(e => console.log("รอการโต้ตอบเพื่อเล่นเสียง: ", e));
+            bgMusic.play().catch(e => console.log("รอการโต้ตอบเพื่อเล่นเสียง"));
 
             camera = new Camera(videoElement, {
                 onFrame: async () => {
@@ -280,16 +304,14 @@
             });
         });
 
-        // --- ฟังก์ชันเมื่อ AI คำนวณเฟรมเสร็จ (วาดโครงร่างและเช็คการขยับ) ---
+        // --- ฟังก์ชันเมื่อ AI คำนวณเฟรมเสร็จ (วาดโครงร่างและเช็คการท่าทาง) ---
         function onResults(results) {
-            // เมื่อโหลดเฟรมแรกสำเร็จ ให้เริ่มเกม
             if (!isGameStarted) {
                 isGameStarted = true;
                 ui.loading.style.display = 'none';
                 ui.main.style.display = 'block';
                 ui.main.classList.remove('hidden');
                 
-                // ปรับขนาด Canvas ให้ตรงกับวิดีโอ
                 canvasElement.width = videoElement.videoWidth;
                 canvasElement.height = videoElement.videoHeight;
                 
@@ -300,73 +322,211 @@
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
             if (results.poseLandmarks) {
-                // วาดเส้นเชื่อมข้อต่อ (สีขาวอมฟ้า)
+                // วาดโครงสร้างร่างกาย
                 drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
                              {color: 'rgba(56, 189, 248, 0.8)', lineWidth: 4});
-                // วาดจุดข้อต่อ (สีส้มเหลือง)
                 drawLandmarks(canvasCtx, results.poseLandmarks,
                             {color: '#facc15', lineWidth: 2, radius: 4});
 
-                // --- คำนวณการเคลื่อนไหว ---
-                if (previousLandmarks) {
-                    let totalDistance = 0;
-                    // เช็คจุดหลักๆ (ไหล่, ศอก, ข้อมือ, สะโพก, เข่า, ข้อเท้า)
-                    // จุดที่ 11 ถึง 32 ของ MediaPipe คือส่วนลำตัวลงไป
-                    for (let i = 11; i <= 32; i++) {
-                        const current = results.poseLandmarks[i];
-                        const prev = previousLandmarks[i];
-                        if(current && prev) {
-                            // หาความห่างของพิกัด x, y
-                            const dx = current.x - prev.x;
-                            const dy = current.y - prev.y;
-                            totalDistance += Math.sqrt(dx * dx + dy * dy);
+                // --- ประมวลผลท่าทางการออกกำลังกาย (Pose Detection) ---
+                if (phase === 'WORK' && currentExercise) {
+                    let landmarks = results.poseLandmarks;
+                    
+                    if (currentExercise.id === 'squat') {
+                        // เช็คจุด: สะโพก (23/24), เข่า (25/26), ข้อเท้า (27/28)
+                        let leftHip = landmarks[23], leftKnee = landmarks[25], leftAnkle = landmarks[27];
+                        let rightHip = landmarks[24], rightKnee = landmarks[26], rightAnkle = landmarks[28];
+                        
+                        // ใช้ฝั่งซ้ายหรือขวาก็ได้ที่ AI มองเห็นชัดกว่า
+                        if ((leftHip.visibility > 0.5 && leftKnee.visibility > 0.5) || 
+                            (rightHip.visibility > 0.5 && rightKnee.visibility > 0.5)) {
+                            
+                            // คำนวณองศาเข่า (เลือกใช้ข้างซ้ายเป็นหลัก ถ้าไม่เห็นค่อยใช้ขวา)
+                            let angle = calculateAngle(leftHip, leftKnee, leftAnkle);
+                            if (leftKnee.visibility < 0.5) angle = calculateAngle(rightHip, rightKnee, rightAnkle);
+
+                            // กฎการทำสควอท
+                            if (angle < 110) { 
+                                repState = true; // ย่อลงสุดแล้ว
+                                updateMotionUI(true, 'ยืดตัวขึ้นตรง!');
+                            }
+                            if (angle > 160 && repState) {
+                                // ยืดตัวขึ้นตรงครบ 1 ครั้ง
+                                repState = false;
+                                registerRep();
+                            } else if (!repState) {
+                                updateMotionUI(false, currentExercise.desc);
+                            }
+                        } else {
+                            updateMotionUI(false, 'ขยับให้กล้องเห็นช่วงขา');
+                        }
+                    } 
+                    else if (currentExercise.id === 'arm_raise') {
+                        // เช็คจุด: ไหล่ (11/12), ข้อมือ (15/16)
+                        let leftShoulder = landmarks[11], leftWrist = landmarks[15];
+                        let rightShoulder = landmarks[12], rightWrist = landmarks[16];
+
+                        if (leftShoulder.visibility > 0.5 && leftWrist.visibility > 0.5) {
+                            // y น้อยกว่า = อยู่สูงกว่า (แกน Y คว่ำลง)
+                            let isHandsUp = leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y;
+                            let isHandsDown = leftWrist.y > leftShoulder.y && rightWrist.y > rightShoulder.y;
+
+                            if (isHandsUp) {
+                                repState = true; // ยกมือขึ้นสุดแล้ว
+                                updateMotionUI(true, 'เอามือลง!');
+                            }
+                            if (isHandsDown && repState) {
+                                // เอามือลงครบ 1 ครั้ง
+                                repState = false;
+                                registerRep();
+                            } else if (!repState) {
+                                updateMotionUI(false, currentExercise.desc);
+                            }
+                        } else {
+                            updateMotionUI(false, 'ขยับให้กล้องเห็นแขนทั้งสองข้าง');
+                        }
+                    }
+                }
+            } else {
+                if (phase === 'WORK') updateMotionUI(false, 'ไม่พบร่างกาย! ถอยห่างกล้อง');
+            }
+            
+            // --- ประมวลผลมินิเกม (แอปเปิ้ล & ระเบิด) ---
+            if (phase === 'WORK') {
+                // สุ่มสร้างวัตถุ
+                if (Math.random() < 0.04) {
+                    fallingObjects.push({
+                        type: Math.random() > 0.3 ? 'apple' : 'bomb', // 70% แอปเปิ้ล, 30% ระเบิด
+                        x: Math.random() * 0.8 + 0.1, // 0.1 ถึง 0.9
+                        y: -0.1,
+                        speed: Math.random() * 0.008 + 0.005, // ความเร็วตก
+                        size: 60 // ขนาด font
+                    });
+                }
+
+                for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                    let obj = fallingObjects[i];
+                    obj.y += obj.speed;
+
+                    // วาด Emoji
+                    canvasCtx.save();
+                    canvasCtx.translate(obj.x * canvasElement.width, obj.y * canvasElement.height);
+                    canvasCtx.scale(-1, 1); // พลิกกลับให้ไม่กลับด้าน
+                    canvasCtx.font = `${obj.size}px Arial`;
+                    canvasCtx.textAlign = 'center';
+                    canvasCtx.textBaseline = 'middle';
+                    canvasCtx.fillText(obj.type === 'apple' ? '🍎' : '💣', 0, 0);
+                    canvasCtx.restore();
+
+                    // เช็คชน
+                    if (results.poseLandmarks) {
+                        let leftIndex = results.poseLandmarks[19];
+                        let rightIndex = results.poseLandmarks[20];
+                        let leftWrist = results.poseLandmarks[15];
+                        let rightWrist = results.poseLandmarks[16];
+
+                        let isHit = false;
+                        const hitRadius = 0.08;
+
+                        const checkHit = (pt) => {
+                            if (pt && pt.visibility > 0.5) {
+                                let dx = pt.x - obj.x;
+                                let dy = pt.y - obj.y;
+                                return Math.sqrt(dx * dx + dy * dy) < hitRadius;
+                            }
+                            return false;
+                        };
+
+                        if (checkHit(leftIndex) || checkHit(rightIndex) || checkHit(leftWrist) || checkHit(rightWrist)) {
+                            isHit = true;
+                        }
+
+                        if (isHit) {
+                            let pts = obj.type === 'apple' ? 5 : -15; 
+                            
+                            hitTexts.push({
+                                text: pts > 0 ? `+${pts}` : `${pts}`,
+                                color: pts > 0 ? '#4ade80' : '#ef4444',
+                                x: obj.x,
+                                y: obj.y,
+                                life: 30
+                            });
+
+                            addScore(pts);
+                            fallingObjects.splice(i, 1);
+                            continue;
                         }
                     }
 
-                    // ถ้าขยับรวมกันเกินค่า Threshold ถือว่ากำลังออกกำลังกาย
-                    if (totalDistance > MOVEMENT_THRESHOLD) {
-                        isMoving = true;
-                    } else {
-                        isMoving = false;
+                    if (obj.y > 1.2) {
+                        fallingObjects.splice(i, 1);
                     }
                 }
-                previousLandmarks = results.poseLandmarks;
-            } else {
-                isMoving = false;
-                previousLandmarks = null;
+
+                // วาดตัวเลขคะแนนลอย
+                for (let i = hitTexts.length - 1; i >= 0; i--) {
+                    let ht = hitTexts[i];
+                    canvasCtx.save();
+                    canvasCtx.translate(ht.x * canvasElement.width, ht.y * canvasElement.height);
+                    canvasCtx.scale(-1, 1); 
+                    canvasCtx.font = 'bold 40px Prompt';
+                    canvasCtx.fillStyle = ht.color;
+                    canvasCtx.textAlign = 'center';
+                    canvasCtx.shadowColor = 'black';
+                    canvasCtx.shadowBlur = 4;
+                    canvasCtx.fillText(ht.text, 0, 0);
+                    canvasCtx.restore();
+
+                    ht.y -= 0.01; 
+                    ht.life--;
+                    if (ht.life <= 0) hitTexts.splice(i, 1);
+                }
             }
-            
+
             canvasCtx.restore();
-            updateMotionUI();
         }
 
-        // --- ระบบอัปเดตหน้าจอเมื่อเกิดการขยับ ---
-        function updateMotionUI() {
+        // --- นับจำนวนครั้งและบวกคะแนน ---
+        function registerRep() {
+            // ป้องกันการนับซ้ำรัวๆ (ต้องห่างกันอย่างน้อย 500ms)
+            const now = Date.now();
+            if (now - lastRepTime < 500) return;
+            lastRepTime = now;
+
+            repsInRound++;
+            ui.repDisplay.textContent = `ทำได้: ${repsInRound} ครั้ง`;
+            
+            // เอฟเฟกต์กระพริบกรอบสีเขียว
+            ui.motionOverlay.classList.remove('moving-active');
+            void ui.motionOverlay.offsetWidth; // trigger reflow
+            ui.motionOverlay.classList.add('moving-active');
+            
+            // แสดงข้อความได้รับคะแนน
+            updateMotionUI(true, `เยี่ยมมาก! +${POINTS_PER_REP} แต้ม`, true);
+            
+            addScore(POINTS_PER_REP);
+        }
+
+        // --- ระบบอัปเดตสถานะและคำแนะนำบนหน้าจอ ---
+        function updateMotionUI(isActive, message, forceGreen = false) {
             if (phase === 'WORK') {
                 ui.motionFeedback.style.opacity = '1';
-                if (!previousLandmarks) {
-                    ui.motionOverlay.classList.remove('moving-active');
-                    ui.motionDot.className = 'w-4 h-4 rounded-full bg-red-500';
-                    ui.motionText.textContent = 'ไม่พบร่างกาย! ถอยห่างกล้อง';
-                    ui.motionText.className = 'font-bold text-lg text-red-400';
-                } else if (isMoving) {
-                    ui.motionOverlay.classList.add('moving-active');
+                if (isActive || forceGreen) {
                     ui.motionDot.className = 'w-4 h-4 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]';
-                    ui.motionText.textContent = 'ยอดเยี่ยม! ลุยต่อไป';
                     ui.motionText.className = 'font-bold text-lg text-green-400';
                 } else {
-                    ui.motionOverlay.classList.remove('moving-active');
                     ui.motionDot.className = 'w-4 h-4 rounded-full bg-orange-500';
-                    ui.motionText.textContent = 'ออกแรงขยับร่างกายหน่อย!';
                     ui.motionText.className = 'font-bold text-lg text-orange-400';
+                    ui.motionOverlay.classList.remove('moving-active');
                 }
+                ui.motionText.textContent = message;
             } else {
                 ui.motionFeedback.style.opacity = '0';
                 ui.motionOverlay.classList.remove('moving-active');
             }
         }
 
-        // --- Game Loop (การนับเวลาและคะแนน) ---
+        // --- Game Loop (การนับเวลา) ---
         function startInitCountdown() {
             phase = 'INIT';
             ui.phaseText.textContent = "เตรียมพร้อม";
@@ -386,8 +546,17 @@
         function startWorkoutPhase() {
             phase = 'WORK';
             timeLeft = PHASE_DURATION;
-            ui.phaseText.textContent = "🔥 ขยับร่างกาย! 🔥";
-            ui.phaseText.className = "text-5xl md:text-7xl font-bold uppercase tracking-widest text-orange-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] mb-4 bg-black/60 px-8 py-2 rounded-2xl animate-bounce";
+            
+            // สุ่มท่าออกกำลังกายใหม่
+            currentExercise = EXERCISES[Math.floor(Math.random() * EXERCISES.length)];
+            repState = false;
+            repsInRound = 0;
+            
+            ui.repDisplay.textContent = `ทำได้: 0 ครั้ง`;
+            ui.repDisplay.classList.remove('hidden');
+
+            ui.phaseText.innerHTML = `ท่า: ${currentExercise.name}`;
+            ui.phaseText.className = "text-4xl md:text-6xl font-bold uppercase tracking-widest text-orange-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] mb-4 bg-black/60 px-8 py-4 rounded-2xl animate-bounce";
             ui.timer.className = "text-8xl md:text-[10rem] font-bold text-orange-400 drop-shadow-[0_8px_8px_rgba(0,0,0,0.9)] font-mono";
             ui.timer.textContent = timeLeft;
         }
@@ -395,6 +564,13 @@
         function startRestPhase() {
             phase = 'REST';
             timeLeft = PHASE_DURATION;
+            
+            // เคลียร์มินิเกม
+            fallingObjects = [];
+            hitTexts = [];
+            
+            ui.repDisplay.classList.add('hidden');
+            
             ui.phaseText.textContent = "💧 พักผ่อน 💧";
             ui.phaseText.className = "text-5xl md:text-7xl font-bold uppercase tracking-widest text-blue-300 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] mb-4 bg-black/60 px-8 py-2 rounded-2xl";
             ui.timer.className = "text-8xl md:text-[10rem] font-bold text-blue-300 drop-shadow-[0_8px_8px_rgba(0,0,0,0.9)] font-mono";
@@ -404,23 +580,15 @@
 
         function startGameLoop() {
             gameInterval = setInterval(() => {
-                // นับเวลาสุทธิ
                 totalSeconds++;
                 const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
                 const s = (totalSeconds % 60).toString().padStart(2, '0');
                 ui.totalTime.textContent = `${m}:${s}`;
 
-                // ลดเวลาในเฟส (30วิ)
                 if(timeLeft > 0) timeLeft--;
                 ui.timer.textContent = timeLeft;
 
-                // สุ่มให้คะแนน (ต้องเป็นช่วงขยับ, AI มองเห็นโครงร่าง และกำลังเคลื่อนไหว)
-                if (phase === 'WORK' && isMoving && previousLandmarks) {
-                    const points = Math.floor(Math.random() * 5) + 3; // สุ่ม 3-7 คะแนนต่อวินาที
-                    addScore(points);
-                }
-
-                // สลับเฟสเมื่อเวลาหมด
+                // สลับเฟสเมื่อเวลาหมด (การบวกคะแนนย้ายไปอยู่ที่ฟังก์ชัน registerRep แทนแล้ว)
                 if (timeLeft <= 0) {
                     if (phase === 'WORK') {
                         startRestPhase();
@@ -439,14 +607,16 @@
 
         function addScore(points) {
             score += points;
+            if (score < 0) score = 0; // ป้องกันแต้มติดลบ
             if (score > TARGET_SCORE) score = TARGET_SCORE;
             
             ui.score.textContent = score;
             const percent = (score / TARGET_SCORE) * 100;
             ui.scoreProgress.style.width = `${percent}%`;
 
-            ui.score.classList.add('scale-125', 'text-white');
-            setTimeout(() => ui.score.classList.remove('scale-125', 'text-white'), 200);
+            const colorClass = points >= 0 ? 'text-white' : 'text-red-500';
+            ui.score.classList.add('scale-125', colorClass);
+            setTimeout(() => ui.score.classList.remove('scale-125', colorClass), 200);
 
             if (score >= TARGET_SCORE) {
                 endGame(true);
@@ -457,10 +627,8 @@
             clearInterval(gameInterval);
             phase = 'END';
             
-            // หยุดกล้องและ AI
             if (camera) camera.stop();
             
-            // หรี่เสียงเพลง
             let vol = bgMusic.volume;
             let fadeOut = setInterval(() => {
                 if (vol > 0.05) {
